@@ -1,4 +1,6 @@
 import requests
+import os
+import subprocess
 import json
 import base64
 
@@ -16,6 +18,10 @@ port = '60344'
 
 current_summoner_URL = f"https://127.0.0.1:{port}/lol-summoner/v1/current-summoner"
 process_running_URL = f"https://127.0.0.1:{port}/process-control/v1/process"
+
+cmd = "wmic PROCESS WHERE name='LeagueClientUx.exe' GET commandline"
+
+commandLine = f"https://127.0.0.1:{port}"
 
 # def login(username, password):
 #     s= requests.Session()
@@ -37,13 +43,20 @@ headers2 = {
     'username': 'riot',
     'password': remoting_auth_token
 }
-print(headers['Authorization'])
 auth = HTTPBasicAuth('riot', remoting_auth_token)
 
-# response = requests.get(current_summoner_URL, headers=headers, verify=False)
-# response = requests.get(process_running_URL, headers=headers2, verify=False)
-response = requests.get(current_summoner_URL, auth=auth, verify=False)
+output = subprocess.getoutput("wmic PROCESS WHERE name='LeagueClientUx.exe' GET commandline").split()
 
-print(response.status_code)
-print(response.json())
-#print(response.json())
+print(output)
+print(type(output))
+
+
+## response = requests.get(current_summoner_URL, headers=headers, verify=False)
+## response = requests.get(process_running_URL, headers=headers2, verify=False)
+
+
+# response = requests.get(current_summoner_URL, auth=auth, verify=False)
+# parameters = requests.get(commandLine, verify=False)
+#
+# print(response.status_code)
+# print(response.json())
