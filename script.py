@@ -9,20 +9,32 @@ from os.path import exists
 from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
 
-LOCKFILE_PATH = 'C:\Riot Games\League of Legends\lockfile'
+global LOCKFILE_PATH
+global AUTH_USER
+'C:\Riot Games\League of Legends\lockfile'
+AUTH_USER = 'riot'
 
 
-class connector:
+class LOCKFILE_CONNECTOR:
+    def __init__(self):
+        self._LOCKFILE_PATH = LOCKFILE_PATH
+        self._AUTH_USER = AUTH_USER
 
-    def __init__(self, LOCKFILE_PATH):
-        self.LOCKFILE_PATH : str = LOCKFILE_PATH
+    async def read_lockfile(self):
+        with open(self._LOCKFILE_PATH) as f:
+            return f.read().split(':')
+
 
     def check_for_lockfile(self) -> bool:
         lockfile_exists : bool = exists(LOCKFILE_PATH)
         return lockfile_exists
 
-    def get_file_contents(self):
-        return
+
+
+    #def apicall(self, endpoint : str, port: str, auth: str) -> dict:
+
+class LCU_CONNECTOR:
+    def __init__(self):
 
 class summoner_endpoints:
     PREFILL = '/lol-summoner/v1/'
@@ -45,13 +57,32 @@ class summoner_endpoints:
 
 
 
+
+
 def main():
-    c = connector(LOCKFILE_PATH)
+    try:
+        lc = LOCKFILE_CONNECTOR()
 
-    if not (c.check_for_lockfile()):
-        raise FileNotFoundError
 
-    print("lockfile found")
+    except FileNotFoundError:
+        print("Lockfile was not found. Make sure to start your client or that the directory is correct.")
+
+    with (open(LOCKFILE_PATH)) as f:
+        file_contents = f.read().split(':')
+        port, auth = file_contents[2], file_contents[3]
+
+
+
+    print(port, auth)
+
+
+
+    # c = connector(LOCKFILE_PATH)
+    #
+    # if not (c.check_for_lockfile()):
+    #     raise FileNotFoundError
+    #
+    # print("lockfile found")
 
 
 if __name__== '__main__':
