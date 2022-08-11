@@ -9,11 +9,12 @@ from os.path import exists
 from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
 
-global LOCKFILE_PATH, AUTH_USER, HTTPEndpoint
+global LOCKFILE_PATH, AUTH_USER, LOCALHOST, HTTPEndpoint
 
 
 LOCKFILE_PATH = 'C:\Riot Games\League of Legends\lockfile'
-AUTH_USER = 'riot'
+AUTH_USERNAME = 'riot'
+LOCALHOST = 'https://127.0.0.1'
 
 
 class LOCKFILE_CONNECTOR:
@@ -45,16 +46,20 @@ class LOCKFILE_CONNECTOR:
     #def apicall(self, endpoint : str, port: str, auth: str) -> dict:
 
 class LCU_CONNECTOR:
-    def __init__(self, port= None, authkey= None):
+    def __init__(self, port= None, auth_key= None):
         self.port : str = port
-        self.authkey : str = authkey
+        self.auth_key : str = auth_key
+        self.http_auth = HTTPBasicAuth(AUTH_USERNAME, self.auth_key)
+        self.request_url = f"{LOCALHOST}:{self.port}/" # https://127.0.0.1:58123/
 
+    async def api_request(self, endpoint: str):
+        response = await requests.get(f"{self.request_url}{endpoint}", self.http_auth)
 
 
 
 
 class summoner_endpoints:
-    PREFILL = '/lol-summoner/v1/'
+    PREFILL = 'lol-summoner/v1/'
 
     current_summoner = PREFILL + 'current-summoner'
 
@@ -64,15 +69,12 @@ class summoner_endpoints:
 
 def main():
     lf_con = LOCKFILE_CONNECTOR()
-    port, authkey = await lf_con.auth()
+    port, auth_key = await lf_con.auth()
 
-    lcu_con = LCU_CONNECTOR(port, authkey)
-    lcu_con.get_skins()
-
-
+    lcu_con = LCU_CONNECTOR(port, auth_key)
+    lcu_con.api_request(summoner_endpoints.PREFILL)
 
 
-    print(port, auth)
 
 
 
