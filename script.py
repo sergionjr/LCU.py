@@ -9,9 +9,10 @@ from os.path import exists
 from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
 
-global LOCKFILE_PATH
-global AUTH_USER
-'C:\Riot Games\League of Legends\lockfile'
+global LOCKFILE_PATH, AUTH_USER, HTTPEndpoint
+
+
+LOCKFILE_PATH = 'C:\Riot Games\League of Legends\lockfile'
 AUTH_USER = 'riot'
 
 
@@ -19,10 +20,20 @@ class LOCKFILE_CONNECTOR:
     def __init__(self):
         self._LOCKFILE_PATH = LOCKFILE_PATH
         self._AUTH_USER = AUTH_USER
+        self._AUTH_KEY, self._PORT = self.read_lockfile()
 
     async def read_lockfile(self):
-        with open(self._LOCKFILE_PATH) as f:
-            return f.read().split(':')
+        print("Finding lockfile")
+        try:
+            with open(self._LOCKFILE_PATH) as f:
+                self._auth_key, self._port = [f.read().split(':')[i] for i in (2, 3)]
+                print(self._auth_key, self._port)
+        except:
+            raise FileNotFoundError("Something went wrong in trying to find the lockfile")
+
+    async def auth(self):
+        return self._auth_key, self._port
+
 
 
     def check_for_lockfile(self) -> bool:
@@ -34,7 +45,13 @@ class LOCKFILE_CONNECTOR:
     #def apicall(self, endpoint : str, port: str, auth: str) -> dict:
 
 class LCU_CONNECTOR:
-    def __init__(self):
+    def __init__(self, port= None, authkey= None):
+        self.port : str = port
+        self.authkey : str = authkey
+
+
+
+
 
 class summoner_endpoints:
     PREFILL = '/lol-summoner/v1/'
@@ -45,31 +62,13 @@ class summoner_endpoints:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def main():
-    try:
-        lc = LOCKFILE_CONNECTOR()
+    lf_con = LOCKFILE_CONNECTOR()
+    port, authkey = await lf_con.auth()
 
+    lcu_con = LCU_CONNECTOR(port, authkey)
+    lcu_con.get_skins()
 
-    except FileNotFoundError:
-        print("Lockfile was not found. Make sure to start your client or that the directory is correct.")
-
-    with (open(LOCKFILE_PATH)) as f:
-        file_contents = f.read().split(':')
-        port, auth = file_contents[2], file_contents[3]
 
 
 
