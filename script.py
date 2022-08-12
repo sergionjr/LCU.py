@@ -5,35 +5,38 @@ import json
 import base64
 import asyncio
 
+
+
 from os.path import exists
 from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
-
-global LOCKFILE_PATH, AUTH_USER, LOCALHOST, HTTPEndpoint
 
 
 LOCKFILE_PATH = 'C:\Riot Games\League of Legends\lockfile'
 AUTH_USERNAME = 'riot'
 LOCALHOST = 'https://127.0.0.1'
 
-
 class LOCKFILE_CONNECTOR:
     def __init__(self):
         self._LOCKFILE_PATH = LOCKFILE_PATH
-        self._AUTH_USER = AUTH_USER
+        self._AUTH_USERNAME = AUTH_USERNAME
         self._AUTH_KEY, self._PORT = self.read_lockfile()
 
-    async def read_lockfile(self):
+    def read_lockfile(self):
         print("Finding lockfile")
+        print(self._LOCKFILE_PATH)
         try:
             with open(self._LOCKFILE_PATH) as f:
-                self._auth_key, self._port = [f.read().split(':')[i] for i in (2, 3)]
-                print(self._auth_key, self._port)
-        except:
+                lockfile_contents = f.read().split(':')
+                print(lockfile_contents)
+                auth_key, port = [lockfile_contents[i] for i in (2, 3)]
+                print("Successfully read from lockfile")
+                return auth_key, port
+        except Exception:
             raise FileNotFoundError("Something went wrong in trying to find the lockfile")
 
     async def auth(self):
-        return self._auth_key, self._port
+        return self._AUTH_KEY, self._PORT
 
 
 
@@ -53,30 +56,30 @@ class LCU_CONNECTOR:
         self.request_url = f"{LOCALHOST}:{self.port}/" # https://127.0.0.1:58123/
 
     async def api_request(self, endpoint: str):
-        response = await requests.get(f"{self.request_url}{endpoint}", self.http_auth)
+        response = requests.get(f"https://127.0.0.1:{self.port}/lol-summoner/v1/current-summoner", auth=self.http_auth, verify=False)
+        rjson = json.loads(response.content)
+        print(response.content)
+        print(type(response.content))
+        print(f"Account ID:{rjson['accountId']}, Summoner ID:{rjson['summonerId']}, Summoner Level:{rjson['summonerLevel']}")
 
 
 
 
 class summoner_endpoints:
-    PREFILL = 'lol-summoner/v1/'
+    PREFILL = "lol-summoner/v1/"
 
-    current_summoner = PREFILL + 'current-summoner'
-
-
+    current_summoner = PREFILL + "current-summoner"
 
 
 
-def main():
+
+
+async def main():
     lf_con = LOCKFILE_CONNECTOR()
     port, auth_key = await lf_con.auth()
 
     lcu_con = LCU_CONNECTOR(port, auth_key)
-    lcu_con.api_request(summoner_endpoints.PREFILL)
-
-
-
-
+    await lcu_con.api_request(summoner_endpoints.PREFILL)
 
     # c = connector(LOCKFILE_PATH)
     #
@@ -87,7 +90,11 @@ def main():
 
 
 if __name__== '__main__':
-    main()
+    import time
+    s = time.perf_counter()
+    asyncio.run(main())
+    elapsed = time.perf_counter() - s
+    print(f"{__file__} executed in {elapsed:0.2f} seconds.")
 
 
 
